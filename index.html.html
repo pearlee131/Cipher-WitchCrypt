@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="icon" href="https://i.pinimg.com/1200x/0c/84/03/0c8403c67ff395372ded8dafe83b75de.jpg" type="image/png">
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Cipher WitchCrypt </title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --accent-1:#caa76b;
+  --accent-2:#8b5a2b;
+  --accent-3:#5e7a1f;
+  --panel-bg: rgba(8,6,4,0.72);
+  --paper:#f3e8c0;
+  --txt-dark:#2f2418;
+  --glow: 0 0 14px rgba(255,238,180,0.75);
+}
+
+/* ---------- Global ---------- */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:"IM Fell English", serif;background:#0b0b0b;color:var(--paper);-webkit-font-smoothing:antialiased}
+body {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    font-family:'IM Fell English', serif;
+    background: url('https://i.pinimg.com/736x/db/36/a6/db36a6b95b3a390a72964def078afaf7.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: var(--paper);
+    transition: background 0.6s ease;
+}
+
+body.night {
+    filter: brightness(0.45) saturate(1.2);
+}
+
+#particle-canvas {
+    position:fixed;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:10;
+}
+
+/* App container */
+.app {
+  width: 95%;
+  max-width: 820px;
+  min-width: 320px;
+  margin: 0 auto;
+  border-radius: 14px;
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(20,16,12,0.85), rgba(12,10,8,0.88));
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 3px 12px rgba(0,0,0,0.6);
+  position: relative;
+  overflow: hidden;
+  transform-origin: top center;
+  animation: openScroll 700ms cubic-bezier(.19,1,.22,1);
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(243,232,192,0.98), rgba(240,228,176,0.98));
+  padding: 20px;
+  border-radius: 10px;
+  color: var(--txt-dark);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 8px 22px rgba(0,0,0,0.45);
+}
+
+/* title area */
+.header {
+  text-align:center;
+  margin-bottom:8px;
+}
+.title {
+  font-family:"Cinzel", serif;
+  font-size:34px;
+  color:#6a4324;
+  text-shadow: 0 0 10px rgba(245,220,140,0.75);
+  margin:0;
+}
+.runes {
+  font-size:20px;
+  color:#3b2a1a;
+  margin-top:6px;
+  opacity:0.95;
+  text-shadow: 0 0 10px rgba(185,150,100,0.45);
+  animation: runePulse 2s ease-in-out infinite alternate;
+}
+
+/* form controls */
+.field { margin:14px 0; }
+label{ display:block; font-weight:700; margin-bottom:8px; color:#5a3f26; font-size:15px }
+
+textarea, input[type="number"] {
+  width:100%;
+  border-radius:10px;
+  border:2px solid #d7c396;
+  padding:12px;
+  font-size:15px;
+  background:var(--paper);
+  color:var(--txt-dark);
+  resize:vertical;
+  min-height:44px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+#output { min-height:110px; }
+
+/* controls row */
+.controls {
+  display:flex;
+  gap:14px;
+  justify-content:space-between;
+  margin-top:6px;
+}
+.btn {
+  flex:1;
+  padding:12px 14px;
+  border-radius:10px;
+  font-family:"Cinzel", serif;
+  cursor:pointer;
+  border:none;
+  color:white;
+  font-size:16px;
+  position:relative;
+  overflow:hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+}
+.btn:active{ transform:translateY(1px) }
+.btn-encrypt { background:var(--accent-2); box-shadow: var(--glow); }
+.btn-decrypt { background:var(--accent-3); box-shadow: var(--glow); }
+
+.small-row { display:flex; gap:12px; margin-top:12px; }
+.spellbook-btn, .night-btn { flex:1; font-size:15px; padding:10px 12px; border-radius:10px; cursor:pointer; }
+
+.casting {
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  top:-46px;
+  background:rgba(0,0,0,0.6);
+  padding:10px 18px;
+  border-radius:12px;
+  color:#fff8d9;
+  font-family:"Cinzel",serif;
+  display:none;
+  box-shadow:0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* scroll opening */
+@keyframes openScroll {
+  from { transform: scaleY(0.85) translateY(-20px); opacity:0 }
+  to { transform: scaleY(1) translateY(0); opacity:1 }
+}
+
+/* rune glow animation */
+@keyframes runePulse {
+  0% { text-shadow:0 0 6px rgba(255,240,190,0.5) }
+  100% { text-shadow:0 0 18px rgba(255,240,190,1); transform:scale(1.02) }
+}
+
+/* modal */
+.modal {
+  position:fixed; left:0; top:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:50;
+}
+.modal .card {
+  width:90%; max-width:720px; background: linear-gradient(180deg,#fef8e6,#f6e9c2);
+  padding:22px; border-radius:12px; color:#2f2418; box-shadow:0 30px 80px rgba(0,0,0,0.6);
+}
+
+/* responsive tweaks */
+@media (max-width:560px){
+  .controls{ flex-direction:column }
+  .btn{ width:100% }
+  .small-row{ flex-direction:column }
+  .title{ font-size:26px }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<main class="app" role="main" aria-labelledby="appTitle">
+  <div class="casting" id="casting">✨ Casting Spell... ✨</div>
+  <div class="panel">
+    <header class="header">
+      <h1 id="appTitle" class="title">🪄 The Cipher WitchCrypt</h1>
+      <div class="runes">ᚠ ᛇ ᚨ ᛉ ᚱ</div>
+    </header>
+
+    <form id="cipherForm" onsubmit="return false" autocomplete="off">
+      <div class="field">
+        <label for="inputText">Write Your Spell</label>
+        <textarea id="inputText" rows="3" placeholder="Type a secret message..."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="shift">Shift Runes (0–25)</label>
+        <input id="shift" type="number" min="0" max="25" value="3" />
+      </div>
+
+      <div class="controls" role="group" aria-label="Encryption Controls">
+        <button class="btn btn-encrypt" type="button" id="encryptBtn">Cast Encrypt Spell</button>
+        <button class="btn btn-decrypt" type="button" id="decryptBtn">Reveal Hidden Spell</button>
+      </div>
+
+      <div class="field">
+        <label for="output">Revealed Scroll</label>
+        <textarea id="output" readonly></textarea>
+      </div>
+
+      <div class="small-row">
+        <button class="spellbook-btn" type="button" id="openSpellbook">📜 Open Spellbook Guide</button>
+        <button class="night-btn" type="button" id="toggleNight">🕯️ Night Ritual Mode</button>
+          <button class="spellbook-btn" type="button" id="cancelSpell">❌ Cancel Spell</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <h2>📜 Spellbook — How the WitchCrypt Spell Works</h2>
+    <p>The Caesar Cipher shifts each letter forward (encryption) or backward (decryption) by the chosen number of runes.
+    Non-letter characters (spaces, punctuation) are left unchanged.</p>
+    <ul>
+      <li>Use the <strong>Shift Runes</strong> control to select the shift value (0 → 25).</li>
+      <li>Click <em>Cast Encrypt Spell</em> to encrypt, or <em>Reveal Hidden Spell</em> to decrypt.</li>
+    </ul>
+    <p><button class="btn" id="closeModal" style="background:#6a4a28">Close Spellbook</button></p>
+  </div>
+</div>
+
+<script>
+/* Caesar Cipher */
+function caesarCipher(text, shift) {
+  shift = ((shift%26)+26)%26;
+  let out='';
+  for(let ch of text){
+    let code=ch.charCodeAt(0);
+    if(code>=65 && code<=90) out+=String.fromCharCode(((code-65+shift)%26)+65);
+    else if(code>=97 && code<=122) out+=String.fromCharCode(((code-97+shift)%26)+97);
+    else out+=ch;
+  }
+  return out;
+}
+
+/* DOM Elements */
+const inputEl=document.getElementById('inputText');
+const shiftEl=document.getElementById('shift');
+const outputEl=document.getElementById('output');
+const castingEl=document.getElementById('casting');
+
+/* Casting animation */
+function showCastingAndRun(fn){
+  castingEl.style.display='block';
+  setTimeout(()=>{castingEl.style.display='none'; fn();},950);
+  const s=new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_e2dcc3a3cb.mp3?filename=magical-ting-10099.mp3');
+  s.volume=0.35; s.play().catch(()=>{});
+}
+
+/* Buttons */
+document.getElementById('encryptBtn').addEventListener('click',()=>showCastingAndRun(()=>{outputEl.value=caesarCipher(inputEl.value,parseInt(shiftEl.value)||0);}));
+document.getElementById('decryptBtn').addEventListener('click',()=>showCastingAndRun(()=>{outputEl.value=caesarCipher(inputEl.value,-parseInt(shiftEl.value)||0);}));
+
+/* Spellbook modal */
+const modal=document.getElementById('modal');
+document.getElementById('openSpellbook').addEventListener('click',()=>modal.style.display='flex');
+document.getElementById('closeModal').addEventListener('click',()=>modal.style.display='none');
+modal.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none'});
+
+/* Night mode toggle */
+document.getElementById('toggleNight').addEventListener('click',()=>{document.body.classList.toggle('night');});
+
+document.getElementById('cancelSpell').addEventListener('click', () => {
+    inputEl.value = '';
+    outputEl.value = '';
+    castingEl.style.display = 'none';
+});
+
+
+/* Particle system */
+(function(){
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  function resize(){canvas.width=innerWidth; canvas.height=innerHeight;}
+  window.addEventListener('resize',resize);
+  resize();
+
+  const particles = [];
+  const colors = ['#ffe9a8','#a8fff3','#ffa8ff','#ffb8b8','#d0ff8a'];
+  for(let i=0;i<120;i++){
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      r:Math.random()*2+1.5,
+      s:Math.random()*0.6+0.2,
+      alpha:Math.random()*0.8+0.2,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      dx:(Math.random()-0.5)*0.4,
+      dy:(Math.random()-0.5)*0.4
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(let p of particles){
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(${parseInt(p.color.slice(1,3),16)},${parseInt(p.color.slice(3,5),16)},${parseInt(p.color.slice(5,7),16)},${p.alpha})`;
+      ctx.shadowBlur=12;
+      ctx.shadowColor=p.color;
+      ctx.fill();
+      p.x += p.dx;
+      p.y += p.dy - p.s;
+      if(p.y<-10) {p.y=canvas.height+10; p.x=Math.random()*canvas.width;}
+      if(p.x<-10) {p.x=canvas.width+10;}
+      if(p.x>canvas.width+10) {p.x=-10;}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
